@@ -5,6 +5,7 @@
 # @notice ：
 from color_tracker.utils.communication import TCP_Communication
 import time
+import numpy as np
 
 tcp_client = TCP_Communication()
 
@@ -28,8 +29,16 @@ def senddata2labview(x_pixel, y_pixel):
     tcp_client.send(robomag_data)
     time.sleep(0.5)
 
-def image2world(x_pixel, y_pixel):
-    pass
+def image2world(robot_position_in_pixel):
+    resolution_x = 17.6 / 640
+    resolution_y = 13 / 480
+
+    world_x = (robot_position_in_pixel[0] - 330) * resolution_x
+    world_y = (robot_position_in_pixel[1] - 232) * resolution_y
+
+    world_point = np.array(world_x, world_y)
+    return world_point
+
 
 # void mapToWorld(unsigned int mx, unsigned int my, double& wx, double& wy, nav_messages::OccupancyGrid& map)
 # {//+0.5 为了去除边界，防止计算到地图外面，(这里map 是指像素坐标系，单位为int，

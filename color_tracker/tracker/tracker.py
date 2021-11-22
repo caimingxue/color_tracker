@@ -9,6 +9,7 @@ import numpy as np
 from color_tracker.utils import helpers, visualize
 from color_tracker.utils.camera import Camera
 from color_tracker.utils.tracker_object import TrackedObject
+from color_tracker.utils.send2labview import *
 
 class ColorTracker(object):
     def __init__(self, max_nb_of_objects: int = None,
@@ -207,6 +208,8 @@ class ColorTracker(object):
 
             fps = (fps + (1. / (time.time() - t1))) / 2
             self._frame = cv2.putText(self._frame, "fps= %.2f" % (fps), (0, 40), cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 255, 0), 2)
+
+            senddata2labview(object_centers)
 
 
 
