@@ -18,6 +18,7 @@ class TCPClient(object):
     def connect(self):
 
         try:
+            print(" !!!!!! Waiting for TCP Connect !!!!!!")
             self.sock.connect((self.host, self.port))
         except socket.error as e:
             # We show the error and tries to connect again (3 attempts)

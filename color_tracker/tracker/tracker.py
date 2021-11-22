@@ -10,9 +10,6 @@ from color_tracker.utils import helpers, visualize
 from color_tracker.utils.camera import Camera
 from color_tracker.utils.tracker_object import TrackedObject
 
-from Communication import TCP_Communication
-
-
 class ColorTracker(object):
     def __init__(self, max_nb_of_objects: int = None,
                  max_nb_of_points: int = None, debug: bool = True):
@@ -117,7 +114,6 @@ class ColorTracker(object):
         step = 0
         object_centers_last = None
         bboxes_last = None
-        tcp_client = TCP_Communication()
         while True:
             t1 = time.time()
             self._frame = self._read_from_camera(camera, horizontal_flip)
@@ -212,6 +208,6 @@ class ColorTracker(object):
             fps = (fps + (1. / (time.time() - t1))) / 2
             self._frame = cv2.putText(self._frame, "fps= %.2f" % (fps), (0, 40), cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 255, 0), 2)
 
-            robomag_data = [2.0, 2.0, 90.0, 90.0, 2.0, 2.0, 30.0, 60.0, 60.0, 60.0, 45.0, 45.0, 45.0]
-            tcp_client.send(robomag_data)
-            time.sleep(0.5)
+
+
+

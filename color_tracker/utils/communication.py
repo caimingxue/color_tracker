@@ -18,10 +18,8 @@ import time
 class TCP_Communication(object):
     def __init__(self):
         self.client = TCPClient('192.168.17.130', 8080)
-        # # if self.client.close():
-        # # 	print(" TCP Commu. unsuccess")
         if self.client.connect():
-            print(" TCP Commu. success")
+            print("================= TCP Commu. Success ====================")
 
     def send(self, data):
         Head = bytes.fromhex('55 AA 99 11')
