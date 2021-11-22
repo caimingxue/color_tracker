@@ -9,34 +9,40 @@ import numpy as np
 
 tcp_client = TCP_Communication()
 
-def senddata2labview(x_pixel, y_pixel):
+def senddata2labview(robot_position_in_pixel):
+    robot_position_in_world = image2world(robot_position_in_pixel)
 
-    x_world, y_world = image2world(x_pixel, y_pixel)
-
-    mag_frequency = 2.0
-    mag_direction = 90.
+    mag_strength = 4.0
+    mag_frequency = 4.0
     mag_pitch = 90.
-    mag_conical = 45.
-    arm_position_x = 60.
-    arm_position_y = 60.
-    arm_position_z = 60.
+    mag_direction = 90.
+    mag_conical = 50.
+
+    target_x = robot_position_in_world[0]
+    target_y = robot_position_in_world[1]
+    target_z = 30.
+    dist_coila_target = 60
+    dist_coilb_target = 60
+    dist_coilc_target = 60
     coil_a_angle = 45.
     coil_b_angle = 45.
     coil_c_angle = 45.
 
-
-    robomag_data = [2.0, 2.0, 90.0, 90.0, 2.0, 2.0, 30.0, 60.0, 60.0, 60.0, 45.0, 45.0, 45.0]
+    robomag_data = [mag_strength, mag_frequency, mag_pitch, mag_direction, mag_conical,
+                    target_x, target_y, target_z, dist_coila_target, dist_coilb_target,
+                    dist_coilc_target, coil_a_angle, coil_b_angle, coil_c_angle]
     tcp_client.send(robomag_data)
-    time.sleep(0.5)
+    time.sleep(0.1)
 
 def image2world(robot_position_in_pixel):
-    resolution_x = 17.6 / 640
-    resolution_y = 13 / 480
+    resolution_x = 176 / 640
+    resolution_y = 130 / 480
 
     world_x = (robot_position_in_pixel[0] - 330) * resolution_x
-    world_y = (robot_position_in_pixel[1] - 232) * resolution_y
+    world_y = -(robot_position_in_pixel[1] - 232) * resolution_y
 
-    world_point = np.array(world_x, world_y)
+    world_point = np.array([world_x, world_y])
+    print("===============================================================", world_point)
     return world_point
 
 

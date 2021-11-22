@@ -143,7 +143,6 @@ class ColorTracker(object):
                 print(object_centers, object_centers_last)
                 if np.sqrt((object_centers[0][0] - object_centers_last[0][0])**2 +
                           (object_centers[0][1] - object_centers_last[0][1])**2) > 20:
-                    print("==========***********++++++++++++===========================================")
                     object_centers = object_centers_last
                     bboxes = bboxes_last
 
@@ -168,8 +167,6 @@ class ColorTracker(object):
 
             # Remove tracked object if the object skipped to many frames, so it was not detected
             helpers.remove_object_if_too_many_frames_skipped(self._tracked_objects, assignment, max_skipped_frames)
-
-
 
             # Check for new objects and initialize them
             un_assigned_detections = [i for i in range(len(object_centers)) if i not in assignment]
@@ -200,7 +197,8 @@ class ColorTracker(object):
 
             if not self._is_running:
                 break
-            if object_centers != []:
+
+            if object_centers.size != 0:
                object_centers_last = object_centers
                bboxes_last = bboxes
 
@@ -209,7 +207,9 @@ class ColorTracker(object):
             fps = (fps + (1. / (time.time() - t1))) / 2
             self._frame = cv2.putText(self._frame, "fps= %.2f" % (fps), (0, 40), cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 255, 0), 2)
 
-            senddata2labview(object_centers)
+            robot_position = np.array([object_centers[0][0], object_centers[0][1]])
+
+            senddata2labview(robot_position)
 
 
 

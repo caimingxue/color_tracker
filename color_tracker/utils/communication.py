@@ -17,7 +17,7 @@ import time
 
 class TCP_Communication(object):
     def __init__(self):
-        self.client = TCPClient('192.168.17.130', 8080)
+        self.client = TCPClient('192.168.1.195', 8181)
         if self.client.connect():
             print("================= TCP Commu. Success ====================")
 
@@ -37,24 +37,25 @@ class TCP_Communication(object):
         data_Byte_11 = struct.pack(">f", data[10])
         data_Byte_12 = struct.pack(">f", data[11])
         data_Byte_13 = struct.pack(">f", data[12])
+        data_Byte_14 = struct.pack(">f", data[13])
 
         _CommandEnd = bytes.fromhex('AA BB CC DD')
         DATA = bytes()
         DATA = bytes().join([Head, data_Byte_1, data_Byte_2, data_Byte_3, data_Byte_4, data_Byte_5, data_Byte_6, data_Byte_7,
-                             data_Byte_8, data_Byte_9, data_Byte_10, data_Byte_11, data_Byte_12, data_Byte_13, _CommandEnd])
+                             data_Byte_8, data_Byte_9, data_Byte_10, data_Byte_11, data_Byte_12, data_Byte_13, data_Byte_14, _CommandEnd])
         self.client.sendBytes(DATA)
 
-def main():
-    Robot = TCP_Communication()
-    time.sleep(5)
+# def main():
+#     Robot = TCP_Communication()
+#     time.sleep(5)
+#
+#     n = 0
+#     while n < 10000:
+#         magData = [2.0, 2.0, 90.0, 90.0, 2.0, 2.0, 30.0, 60.0, 60.0, 60.0, 45.0, 45.0, 45.0]
+#         Robot.send(magData)
+#         time.sleep(0.5)
+#         n = n + 1
+#     Robot.client.close()
 
-    n = 0
-    while n < 100:
-        magData = [2.0, 2.0, 90.0, 90.0, 2.0, 2.0, 30.0, 60.0, 60.0, 60.0, 45.0, 45.0, 45.0]
-        Robot.send(magData)
-        time.sleep(0.5)
-        n = n + 1
-    Robot.client.close()
-
-if __name__ == "__main__":
-    main()
+# if __name__ == "__main__":
+#     main()
