@@ -1,5 +1,7 @@
 import warnings
 from typing import Union, List, Callable
+import time
+import math
 
 import cv2
 import numpy as np
@@ -7,6 +9,8 @@ import numpy as np
 from color_tracker.utils import helpers, visualize
 from color_tracker.utils.camera import Camera
 from color_tracker.utils.tracker_object import TrackedObject
+
+from Communication import TCP_Communication
 
 
 class ColorTracker(object):
@@ -33,6 +37,8 @@ class ColorTracker(object):
         self._tracked_object_id_count = 0
 
         self._tracking_callback = None
+
+
 
     @property
     def tracked_objects(self) -> List[TrackedObject]:
@@ -76,11 +82,11 @@ class ColorTracker(object):
     def _read_from_camera(camera, horizontal_flip: bool) -> np.ndarray:
         ret, frame = camera.read()
 
-        if ret:
-            if horizontal_flip:
-                frame = cv2.flip(frame, 1)
-        else:
-            raise ValueError("There is no camera feed")
+        # if ret:
+        #     if horizontal_flip:
+        #         frame = cv2.flip(frame, 1)
+        # else:
+        #     raise ValueError("There is no camera feed")
 
         return frame
 
@@ -92,7 +98,8 @@ class ColorTracker(object):
 
     def track(self, camera: Union[Camera, cv2.VideoCapture], hsv_lower_value: Union[np.ndarray, List[int]],
               hsv_upper_value: Union[np.ndarray, List[int]], min_contour_area: Union[float, int] = 0,
-              kernel: np.ndarray = None, horizontal_flip: bool = True, max_track_point_distance: int = 100,
+              max_contour_area: Union[float, int] = 0, kernel: np.ndarray = None, horizontal_flip: bool = True,
+              max_track_point_distance: int = 70,
               max_skipped_frames: int = 24):
         """
         With this we can start the tracking with the given parameters
@@ -105,10 +112,14 @@ class ColorTracker(object):
         :param min_contour_area: minimum contour area for the detection. Below that the detection does not count
         :param kernel: structuring element to perform morphological operations on the mask image
         """
-
+        fps = 0.0
         self._is_running = True
-
+        step = 0
+        object_centers_last = None
+        bboxes_last = None
+        tcp_client = TCP_Communication()
         while True:
+            t1 = time.time()
             self._frame = self._read_from_camera(camera, horizontal_flip)
 
             if self._frame_preprocessor is not None:
@@ -122,12 +133,22 @@ class ColorTracker(object):
                                                     hsv_upper_value=hsv_upper_value,
                                                     kernel=kernel)
 
-            contours = helpers.filter_contours_by_area(contours, min_contour_area)
+            contours = helpers.filter_contours_by_area(contours, min_contour_area, max_contour_area)
             contours = helpers.sort_contours_by_area(contours)
+
             if self._max_nb_of_objects is not None and self._max_nb_of_objects > 0:
                 contours = contours[:self._max_nb_of_objects]
             bboxes = helpers.get_bbox_for_contours(contours)
             object_centers = helpers.get_contour_centers(contours)
+            print("***************************************************", object_centers)
+
+            if (step > 1) and (object_centers != []):
+                print(object_centers, object_centers_last)
+                if np.sqrt((object_centers[0][0] - object_centers_last[0][0])**2 +
+                          (object_centers[0][1] - object_centers_last[0][1])**2) > 20:
+                    print("==========***********++++++++++++===========================================")
+                    object_centers = object_centers_last
+                    bboxes = bboxes_last
 
             # Init the list of tracked objects if it's empty
             if len(self._tracked_objects) == 0:
@@ -137,7 +158,7 @@ class ColorTracker(object):
             # Constructing cost matrix (matrix with the distances from points to other points)
             cost_mtx = helpers.calculate_distance_mtx(self._tracked_objects, object_centers)
 
-            # Solve assignment problem
+            # Solve assignment problem (如果检测不到，assignment将会为-1，并且在连续24帧之后为空)
             assignment = helpers.solve_assignment(cost_mtx)
 
             # Refine assignment list and objects's skipped frames
@@ -145,11 +166,13 @@ class ColorTracker(object):
                 if assignment[i] != -1:
                     if cost_mtx[i][assignment[i]] > max_track_point_distance:
                         assignment[i] = -1
-                else:
+                else: # = -1，即在连续skipped_frames之后为空
                     self._tracked_objects[i].skipped_frames += 1
 
             # Remove tracked object if the object skipped to many frames, so it was not detected
             helpers.remove_object_if_too_many_frames_skipped(self._tracked_objects, assignment, max_skipped_frames)
+
+
 
             # Check for new objects and initialize them
             un_assigned_detections = [i for i in range(len(object_centers)) if i not in assignment]
@@ -180,3 +203,15 @@ class ColorTracker(object):
 
             if not self._is_running:
                 break
+            if object_centers != []:
+               object_centers_last = object_centers
+               bboxes_last = bboxes
+
+            step += 1
+
+            fps = (fps + (1. / (time.time() - t1))) / 2
+            self._frame = cv2.putText(self._frame, "fps= %.2f" % (fps), (0, 40), cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 255, 0), 2)
+
+            robomag_data = [2.0, 2.0, 90.0, 90.0, 2.0, 2.0, 30.0, 60.0, 60.0, 60.0, 45.0, 45.0, 45.0]
+            tcp_client.send(robomag_data)
+            time.sleep(0.5)

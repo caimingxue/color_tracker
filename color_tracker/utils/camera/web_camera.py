@@ -22,6 +22,18 @@ class WebCamera(Camera):
     def _init_camera(self):
         super()._init_camera()
         self._cam = cv2.VideoCapture(self._video_src)
+        # # 获取 OpenCV version
+        # (major_ver, minor_ver, subminor_ver) = (cv2.__version__).split('.')
+        #
+        # # 对于 webcam 不能采用 get(CV_CAP_PROP_FPS) 方法
+        # # 而是：
+        # if int(major_ver) < 3:
+        #     fps = self._cam.get(cv2.cv.CV_CAP_PROP_FPS)
+        #     print("Frames per second using video.get(cv2.cv.CV_CAP_PROP_FPS): {0}".format(fps))
+        # else:
+        #     fps = self._cam.get(cv2.CAP_PROP_FPS)
+        #     print("Frames per second using video.get(cv2.CAP_PROP_FPS) : {0}".format(fps))
+
         self._ret, self._frame = self._cam.read()
         if not self._ret:
             raise Exception("No camera feed")

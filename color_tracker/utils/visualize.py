@@ -36,12 +36,13 @@ def draw_debug_frame_for_object(debug_frame, tracked_object: TrackedObject, colo
 
     # if contour is not None:
     #     cv2.drawContours(debug_frame, [contour], -1, (0, 255, 0), cv2.FILLED)
-
     if bbox is not None:
         x1, y1, x2, y2 = bbox
         cv2.rectangle(debug_frame, (x1, y1), (x2, y2), (255, 255, 255), 1)
         cv2.putText(debug_frame, "Id {0}".format(tracked_object.id), (x1, y1 - 5), cv2.FONT_HERSHEY_COMPLEX, 0.5,
                     (255, 255, 255))
+        str_object_coordinate = '(' + str((x1 + x2)/2) + ',' + str((y1 + y2)/2) + ')'  # 把坐标转化为字符串
+        cv2.putText(debug_frame, str_object_coordinate, (450, 30), cv2.FONT_HERSHEY_SIMPLEX, 0.8, (255, 0, 0), 2)
 
     if points is not None and len(points) > 0:
         draw_tracker_points(points, debug_frame, color)
