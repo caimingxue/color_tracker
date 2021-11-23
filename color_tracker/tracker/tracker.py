@@ -198,11 +198,11 @@ class ColorTracker(object):
             if not self._is_running:
                 break
 
-            if object_centers.size != 0:
-               object_centers_last = object_centers
-               bboxes_last = bboxes
+            if object_centers.size == 0:
+                continue
 
-            step += 1
+            object_centers_last = object_centers
+            bboxes_last = bboxes
 
             fps = (fps + (1. / (time.time() - t1))) / 2
             self._frame = cv2.putText(self._frame, "fps= %.2f" % (fps), (0, 40), cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 255, 0), 2)
@@ -210,6 +210,8 @@ class ColorTracker(object):
             robot_position = np.array([object_centers[0][0], object_centers[0][1]])
 
             senddata2labview(robot_position)
+
+            step += 1
 
 
 

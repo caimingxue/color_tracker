@@ -44,6 +44,7 @@ class TCP_Communication(object):
         DATA = bytes().join([Head, data_Byte_1, data_Byte_2, data_Byte_3, data_Byte_4, data_Byte_5, data_Byte_6, data_Byte_7,
                              data_Byte_8, data_Byte_9, data_Byte_10, data_Byte_11, data_Byte_12, data_Byte_13, data_Byte_14, _CommandEnd])
         self.client.sendBytes(DATA)
+        print("========================== Send Data Sucess ==================")
 
 # def main():
 #     Robot = TCP_Communication()
